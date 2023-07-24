@@ -140,7 +140,7 @@ The command we use to fuzzing is:
 ```bash
 wfuzz -c -t 200 --hc=404 -w  /opt/SecLists/directory-list-2.3-medium.txt http://10.10.10.75/nibbleblog/FUZZ.php
 ```
-> ** Important** Fuzzing is a testing technique used to discover vulnerabilities and defects in programs or systems. It involves sending a large amount of random input data to the target a>
+> **Important** Fuzzing is a testing technique used to discover vulnerabilities and defects in programs or systems. It involves sending a large amount of random input data to the target a>
 
 <br>
 
@@ -302,7 +302,7 @@ Finally, I go to the directory /home/nibbler and we find the flag on `user.txt`.
 Firstly lets list the priveleges or permissions that I have assigned, to do that I used the command `sudo -l`.
 <u>Output</u>
 ```bash
-nibbler@Nibbles:/home/nibbler$ sudo -l
+$ nibbler@Nibbles:/home/nibbler$ sudo -l
 Matching Defaults entries for nibbler on Nibbles:
     env_reset, mail_badpass,
     secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
@@ -316,7 +316,7 @@ If we pay attention we find an interesting zip that is on nibbler directory call
 It seems that file is on the personal.zip:
 
 ```bash
-nibbler@Nibbles:/home/nibbler$ ls
+$ nibbler@Nibbles:/home/nibbler$ ls
 ls
 personal
 user.txt
@@ -338,9 +338,9 @@ Finally, we are root!!!
 
 We have the flag here:
 ```bash
-root@Nibbles:/home/nibbler/personal/stuff# cd /root
+$ root@Nibbles:/home/nibbler/personal/stuff# cd /root
 cd /root
-root@Nibbles:~# ls
+$ root@Nibbles:~# ls
 ls
 root.txt
 
