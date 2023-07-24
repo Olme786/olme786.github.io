@@ -246,7 +246,7 @@ Let's try to check if the user could be `admin` and the password is `nibbles`
 <br><br>
 
 WE GET IT!!!
-![](/assets/images/htb-write-nibbles/admin_login2.png)
+![](/assets/images/htb-writeup-nibbles/admin_login2.png)
 <br><br>
 
 Now, we need to try to get a reverse shell, so let's go to plugins to upload some code and we can see that we can upload a file on `My image`. Let's try to do a **Remote Code Execution(RCE)** by uploading a PHP file with that code:
