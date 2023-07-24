@@ -20,7 +20,8 @@ tags:
 ![](/assets/images/htb-writeup-nibbles/nibbles_logo.png)
 
 
-<nd capture the flag"
+Nibbles is a begginer-friendly machine on HackTheBox, designed to provide an excellent entry point for those new to ethical hacking and penetration testing. It offers a realistic environment to practise skills and tackle challenges in a controlled setting. As you explore and conquer its challenges, you'll develop essential skills and gain a deeper understanding of penetration testing techniques. In this machine we do enumeration, web application testing, exploitation, privilege escalation and capture the flag
+
 
 ## VPN connection
 
@@ -153,12 +154,14 @@ Let's explain the command:
 
 > **Important** When adding `.php` at the end of the `wfuzz`command, you are trying to identify the programming language used by the web application. by appending `.php`to the URLs being fuzzed, you are attemting to find PHP files.
 <br>
+<br>
 
 <u>Output</u>
 ```bash
 000000259:   200        26 L     96 W       1401 Ch     "admin" 
 ```
-
+<br>
+<br>
 There is one interesting page! Let's see admin.php(http://10.10.10.75/nibbleblog/admin.php).
 <br>
 <br>
@@ -250,8 +253,9 @@ Now, we need to try to get a reverse shell, so let's go to plugins to upload som
 ```php
 <?php system($_REQUEST['cmd']); ?>
 ```
-> **Important** In the provided code, the `system()`function is used, which allows the execution of shell commands. The `$REQUEST[\`cmd\`]` variable retrieves the value of the `cmd` parameter from the HTTP request, which contains the shell command the attacker wants to execute.
+> **Important** In the provided code, the `system()`function is used, which allows the execution of shell commands. The `$REQUEST["cmd"]` variable retrieves the value of the `cmd` parameter from the HTTP request, which contains the shell command the attacker wants to execute.
 <br><br>
+
 Now, we need to find on the directories we found doing fuzzing and try to search something called "my_image" and we get it on **/nibbleblog/content/private/plugins/my_image**.
 <br><br>
 If we click on our file and we add at the end of the PHP file that `?cmd=`(http://10.10.10.75/nibbleblog/content/private/plugins/my_image/), we will get a cmd where we can add commands. In my case I am going to do a reverse shell to make everything more comfortable.
