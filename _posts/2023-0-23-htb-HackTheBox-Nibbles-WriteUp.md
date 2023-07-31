@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Nibbles - Hack The Box
-excerpt: "Nibbles is a begginer-friendly machine on HackTheBox, designed to provide an excellent entry point for those new to ethical hacking and penetration testing. It offers a realistic environment to practise skills and tackle challenges in a controlled setting. As you explore and conquer its challenges, you'll develop essential skills and gain a deeper understanding of penetration testing techniques. In this machine we do enumeration, web application testing, exploitation, privilege escalation and capture the flag"
+excerpt: "Nibbles is a begginer-friendly machine on HackTheBox, designed to provide an excellent entry point for those new to ethical hacking and penetration testing. It offers a realistic environment to practise skills and tackle challenges in a controlled setting. As you explore and conquer its challenges, you'll develop essential skills and gain a deeper understanding of penetration testing techniques. In this machine we do enumeration, web application testing, exploitation, privilege escalation and capture the flag."
 date: 2023-07-23
 classes: wide
 header:
@@ -20,7 +20,7 @@ tags:
 ![](/assets/images/htb-writeup-nibbles/nibbles_logo.png)
 
 
-Nibbles is a begginer-friendly machine on HackTheBox, designed to provide an excellent entry point for those new to ethical hacking and penetration testing. It offers a realistic environment to practise skills and tackle challenges in a controlled setting. As you explore and conquer its challenges, you'll develop essential skills and gain a deeper understanding of penetration testing techniques. In this machine we do enumeration, web application testing, exploitation, privilege escalation and capture the flag
+Nibbles is a begginer-friendly machine on HackTheBox, designed to provide an excellent entry point for those new to ethical hacking and penetration testing. It offers a realistic environment to practise skills and tackle challenges in a controlled setting. As you explore and conquer its challenges, you'll develop essential skills and gain a deeper understanding of penetration testing techniques. In this machine we do enumeration, web application testing, exploitation, privilege escalation and capture the flag.
 
 
 ## VPN connection
@@ -60,7 +60,7 @@ PORT   STATE SERVICE
 80/tcp open  http
 ```
  <u>Output:</u>
- After executing the command, Nmap will begin scanning all the 65535 ports on the target IP address. THe output will display a detailed report, listing the open ports and services found.
+ After executing the command, Nmap will begin scanning all the 65535 ports on the target IP address. The output will display a detailed report, listing the open ports and services found.
 <br>
 <br>
 <br>
