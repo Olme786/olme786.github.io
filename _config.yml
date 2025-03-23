@@ -27,6 +27,7 @@ logo                     : "/assets/images/logo.png"
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 breadcrumbs              : true # true, false (default)
 words_per_minute         : 200
+future                   : true
 comments:
   provider               : false # false (default), "disqus", "discourse", "facebook", "google-plus", "staticman", "staticman_v2" "custom"
   disqus:
@@ -103,9 +104,9 @@ analytics:
 author:
   name             : "Olme786"
   avatar           : "/assets/images/android-7479380_640.webp"
-  bio              : "Pentester"
+  bio              : "Threat Researcher"
   location         : "Spain"
-  email            : "aolme55@gmail.com"
+  email            : 
   uri              :
   home             : # null (default), "absolute or relative url to link to author home"
   bitbucket        :
