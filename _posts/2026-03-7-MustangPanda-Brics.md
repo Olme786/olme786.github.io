@@ -85,7 +85,7 @@ The code introduces deliberate busy-loops to hinder dynamic analysis, significan
 <p align="center">
 <img src="/assets/images/mustangPanda-brics/iteraciones_infernales.png">
 </p>
-Following the execution flow, the malware proceeds to harvest information about the compromised system through the following calls and registry queries:
+Following the execution flow, the malware proceeds to harvest information about the compromised system through some of the following calls and registry queries:
 
 - **`GetWindowsDirectoryW`** — Retrieves the path to the Windows directory.
 - **`GetSystemDirectoryW`** — Retrieves the path to the system directory.
