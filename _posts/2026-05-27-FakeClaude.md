@@ -184,7 +184,7 @@ codesign -f -s -
 ## 🔍Indicators of Compromise (IOCs)
 ### SHA256 Hashes
 0b3cccf43943dfbf723ec4884d0328725b10554151521b3255e6f21c5753a6b8 - stage2.zsh
-984ada8ec078ce7ba901ce0c364c84252b7d4bccca09d9d1a6fa7d4d61b54fd2 - stage3.applescript
+984ada8ec078ce7ba901ce0c364c84252b7d4bccca09d9d1a6fa7d4d61b54fd2 - stage3.scpt
 
 ### Domains
 claudecode-ai[.]netlify[.]app<br>
