@@ -170,7 +170,7 @@ The Vidar payload employs two mechanisms to determine whether it is already runn
 <img src="/assets/images/newVidar/MutexAndRegistry.png">
 </p>
 
-Before establishing any communication with the C2 server, Vidar creates a directory under `%TEMP%` using a randomly generated seven-character alphanumeric name that matches the pattern `[A-Z0-9]{7}`. This directory is later used to store the encrypted files containing the stolen information.
+Before establishing any communication with the C2 server, Vidar creates a directory under `%TEMP%` using a randomly generated seven-character alphanumeric name that matches the pattern `[a-z0-9]{8}`. This directory is later used to store the encrypted files containing the stolen information.
 <p align="center">
 <img src="/assets/images/newVidar/TempDirectory.png">
 </p>
@@ -317,7 +317,7 @@ Based on the analyzed sample, Vidar was observed collecting data from multiple a
 - **Steam:**  
   Vidar collects Steam-related information from the registry location:
   - `Software\Valve\Steam`
-- **FileZilla**
+- **FileZilla:**  
   Server configurations are targeted.
 
 - **Discord:**  
@@ -354,7 +354,7 @@ Based on the analyzed sample, Vidar was observed collecting data from multiple a
 - **Screenshots:**  
   Vidar is capable of capturing screenshots from the victim's system using Windows graphical APIs provided by `gdi32.dll`.
 
-Once Vidar recollects all the information, it creates files with the follow pattern `[A-Z0-9]{7}`. Browser-related artifacts, such as credentials, browsing history, cookies, and other user data, are extracted from SQLite databases located within the browser profile directories. The collected data is then staged into these temporary files.
+Once Vidar recollects all the information, it creates files with the follow pattern `[a-z0-9]{8}`. Browser-related artifacts, such as credentials, browsing history, cookies, and other user data, are extracted from SQLite databases located within the browser profile directories. The collected data is then staged into these temporary files.
 <p align="center">
 <img src="/assets/images/newVidar/tempFiles.png">
 </p>
@@ -404,7 +404,7 @@ The following public sandbox reports were used during the analysis:
 * [TA0002][T1059.001] Powershell execution<br>
 ``` powershell -w -h "iex(<redacted>)"```
 * [TA0009][T1074] Data Staged: Local Data Staging<br>
-```C:\Users\<User>\AppData\Local\Temp\[A-Z0-9]{7}```
+```C:\Users\<User>\AppData\Local\Temp\[a-z0-9]{8}```
 * [TA0005][T1480.002] Execution Guardrails: Mutual Exclusion
 ```
 (Registry) *\Software\Microsoft\Windows\CurrentVersion\Explorer
