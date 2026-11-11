@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Vidar Stealer - Malware
-excerpt: "Vidar is a well-known information stealer used to collect credentials, financial information, browser data, and cryptocurrency wallets from compromised systems. A recently discovered Go-based version introduces major architectural changes, including advanced anti-analysis techniques, a new dynamic API loading mechanism across multiple DLLs, and additional execution checks designed to hinder malware analysis and detection."
+excerpt: "Vidar is a well-known information stealer used to collect credentials, financial information, browser data, and cryptocurrency wallets from compromised systems. A recently discovered Go-based version introduces major architectural changes, including advanced anti-analysis techniques, dynamic API resolution across multiple DLLs, and additional execution checks designed to hinder malware analysis and detection."
 date: 2026-07-11
 classes: wide
 header:
@@ -63,12 +63,12 @@ As demonstrated throughout this analysis, reaching the final Vidar payload requi
 
 Examining these samples over time also highlights the continuous refinement of the malware, reflecting the technical expertise of its developers. This combination of obfuscation, a stable architecture, and ongoing development may help explain why Vidar remains one of the most prevalent information stealers.
 
-The extracted binary is typically a 64-bit C++ executable with a file size of approximately 2 MB.
+While the loader is written in Go, the final Vidar payload is a native C++ binary. The extracted binary is typically a 64-bit C++ executable with a file size of approximately 2 MB.
 <p align="center">
 <img src="/assets/images/newVidar/vidarmapped.png">
 </p>
 
-Starting with the static analysis, it was possible to extract valuable information about Vidar's internal configuration and execution flow. Among the extracted artifacts were several hardcoded command-and-control (C2) server URLs, the number of which varies depending on the sample. There are samples that only have 1 URL.These servers are used by Vidar to retrieve its configuration and maintain communication with the attacker-controlled infrastructure. In the sample shown below, three C2 URLs were identified.
+Starting with the static analysis, it was possible to extract valuable information about Vidar's internal configuration and execution flow. Among the extracted artifacts were several hardcoded command-and-control (C2) server URLs, the number of which varies depending on the sample. There are samples that only have 1 URL. These servers are used by Vidar to retrieve its configuration and maintain communication with the attacker-controlled infrastructure. In the sample shown below, three C2 URLs were identified.
 
 <p align="center">
 <img src="/assets/images/newVidar/decoded_information_vidar.png">
@@ -101,6 +101,7 @@ To reduce the likelihood of analysis or detection, the sample employs multiple e
 - **Norton**
   - `nortonui.exe`
   - `nortonsvc.exe`
+  - `nlltoolssvc.exe`
 
 - **Malwarebytes**
   - `mbamtray.exe`
@@ -143,10 +144,7 @@ To reduce the likelihood of analysis or detection, the sample employs multiple e
 - **BullGuard**
   - `vsserv.exe`
 
-- **Other security software**
-  - `nlltoolssvc.exe`
-
-Vidar then performs a series of environment checks to determine whether it is running in a legitimate system or within an analysis environment. These checks contribute to an internal scoring mechanism, and the malware only continues its execution if the accumulated score reaches at least 8 out of 13. Otherwise, the process is terminated.
+Vidar performs a series of environment checks to assess whether it is running on a legitimate host or within an analysis environment. The results are used to calculate an internal score, which determines whether execution can proceed. The sample specifies a maximum score of 13, with a minimum threshold of 8 required for execution to continue. However, only twelve checks were identified during this analysis, leaving a discrepancy that may be explained by an additional check that was not observed or by a weighted scoring mechanism. If the required threshold is not met, the process terminates.
 
 | Check | Description |
 |-------|-------------|
@@ -165,22 +163,24 @@ Vidar then performs a series of environment checks to determine whether it is ru
 
 The blacklisted usernames are `john` and `WDAGUtilityAccount`. The blacklisted computer names are `john-pc` and `sandbox`.
 
-The Vidar payload employs two mechanisms to determine whether it is already running on the compromised system. First, it attempts to create a mutex named `Gernsoalse`. If the mutex already exists, indicating that another instance of the malware is active, the process terminates. Next, it checks for the presence of the registry key `TS_aa6f515d` under `Software\Microsoft\Windows\CurrentVersion\Explorer`. If the key does not exist, Vidar creates it and assigns a randomly generated seven-character alphanumeric value matching the pattern `[A-Z0-9]{7}`.
+The Vidar payload employs two mechanisms to determine whether it is already running on the compromised system. First, it attempts to create a mutex named `Gernsoalse`. If the mutex already exists, indicating that another instance of the malware is active, the process terminates. This mutex name remained constant across all the samples analyzed, making it a reliable indicator of compromise.
+
+Next, it checks for the presence of the registry key `TS_aa6f515d` under `Software\Microsoft\Windows\CurrentVersion\Explorer`. If the key does not exist, Vidar creates it and assigns a randomly generated seven-character alphanumeric value matching the pattern `[A-Z0-9]{7}`.
 <p align="center">
 <img src="/assets/images/newVidar/MutexAndRegistry.png">
 </p>
 
-Before establishing any communication with the C2 server, Vidar creates a directory under `%TEMP%` using a randomly generated seven-character alphanumeric name that matches the pattern `[a-z0-9]{8}`. This directory is later used to store the encrypted files containing the stolen information.
+Before establishing any communication with the C2 server, Vidar creates a directory under `%TEMP%` using a randomly generated eight-character alphanumeric name that matches the pattern `[a-z0-9]{8}`. This directory is later used to store the encrypted files containing the stolen information.
 <p align="center">
 <img src="/assets/images/newVidar/TempDirectory.png">
 </p>
 
-After completing its initial checks, Vidar establishes communication with the C2 server to notify the attacker-controlled infrastructure that the malware is active. This first communication is not limited to a simple beaconing request; it also includes information collected during the reconnaissance phase, such as the hwid. The C2 selection process follows a specific resolution flow. First, Vidar attempts to identify the appropriate C2 infrastructure through the configured IP address, followed by Telegram and, finally, the associated Steam account. Depending on the response received from the C2, the malware may modify its communication behavior. For instance, if the response contains the expected identifier string along with a domain, Vidar switches to this new C2 address for subsequent communications. Otherwise, it continues using the previously configured URL.
+After completing its initial checks, Vidar establishes communication with the C2 server to notify the attacker-controlled infrastructure that the malware is active. This first communication is not limited to a simple beaconing request; it also includes information collected during the reconnaissance phase, such as the hwid. The C2 selection process follows a specific resolution flow. First, Vidar attempts to identify the appropriate C2 infrastructure through the configured IP address, followed by Telegram and, finally, the associated Steam account. Depending on the response received from the C2, the malware may modify its communication behavior. For instance, if the response contains the expected identifier string (`k5yss1`, the same value observed earlier preceding the Steam profile URL) along with a domain, Vidar switches to this new C2 address for subsequent communications. Otherwise, it continues using the previously configured URL.
 <p align="center">
 <img src="/assets/images/newVidar/connectionC2.png">
 </p>
 
-Additionally, the C2 server responds with an encrypted configuration that defines the data collection parameters, including the browsers from which Vidar should extract information. Some of the configured targets include:
+The C2 server responds with encrypted configuration data that defines the collection parameters. Vidar retrieves this configuration through several sequential requests: first the targeted `browsers`, then `cryptocurrency wallets`  and `password managers`, and finally `browser extensions`. The first of these specifies the browsers from which Vidar should extract information:
 
 ```json
 [
@@ -207,7 +207,7 @@ Additionally, the C2 server responds with an encrypted configuration that define
   }
 ]
 ```
-The browsers whose information are stolen are:
+The browsers whose information is stolen are:
 
 | Browser | User data path | Installation path |
 |---------|----------------|-------------------|
@@ -232,7 +232,7 @@ The browsers whose information are stolen are:
 | Zen Browser | `\Zen\Profiles` | `C:\Program Files\Zen Browser\` |
 | Roblox WebView | `\Roblox\RobloxStudio\WebView2\EBWebView` | - |
 
-It parses the previous configuration file received and subsequently establishes another communication with the same infrastructure to retrieve the configuration containing the cryptocurrency wallets targeted for theft and password managers.
+It parses the previous configuration file received and subsequently establishes another communication with the same infrastructure to retrieve the configuration containing the cryptocurrency wallets targeted for theft, as well as password managers.
 
 ```json
 [
@@ -354,7 +354,7 @@ Based on the analyzed sample, Vidar was observed collecting data from multiple a
 - **Screenshots:**  
   Vidar is capable of capturing screenshots from the victim's system using Windows graphical APIs provided by `gdi32.dll`.
 
-Once Vidar recollects all the information, it creates files with the follow pattern `[a-z0-9]{8}`. Browser-related artifacts, such as credentials, browsing history, cookies, and other user data, are extracted from SQLite databases located within the browser profile directories. The collected data is then staged into these temporary files.
+Once Vidar collects all the information, it creates files with the following pattern `[a-z0-9]{8}`. Browser-related artifacts, such as credentials, browsing history, cookies, and other user data, are extracted from SQLite databases located within the browser profile directories. The collected data is then staged into these temporary files.
 <p align="center">
 <img src="/assets/images/newVidar/tempFiles.png">
 </p>
@@ -366,15 +366,16 @@ Finally, Vidar organizes all the collected information and establishes communica
 <p align="center">
 <img src="/assets/images/newVidar/loader.png">
 </p>
+In summary, the complete execution chain can be traced from the initial Go-based loader through to data exfiltration. The loader decodes and resolves the required WinAPI functions, allocates memory, and deobfuscates the embedded Vidar payload before transferring execution to it. Vidar then runs a series of anti-analysis and environment checks, establishes its presence through a mutex and a registry-based victim identifier, and resolves its C2 infrastructure through a multi-stage flow backed by a Steam dead drop resolver. Once a trusted C2 is reached, it retrieves its collection configuration in several sequential requests, harvests credentials, cookies, wallets, and application data into staged temporary files, and finally exfiltrates everything to the C2 — which in turn may deliver a next-stage payload to continue the infection. This consistent, modular execution flow, combined with heavy obfuscation and continuous development, is what keeps Vidar among the most prevalent information stealers in the wild.
 
 ## Further Insights
-Based on the sample I analyzed, two features were not present but are known to be supported by Vidar: the `Grabber` and the `Loader`.
+Beyond what the analyzed samples exhibited, Vidar supports two additional capabilities worth documenting: the `Grabber` and the `Loader`.
 
 The `Grabber` allows the operator to define custom file paths through the Vidar control panel. These paths are included in the configuration file, which is downloaded by the malware when it executes. Once the configuration is retrieved, the Grabber collects the files located in the specified directories and exfiltrates them along with the rest of the stolen data.
 
 The `Loader` is responsible for retrieving an additional payload from a remote URL and executing it on the compromised system, enabling the next stage of the attack.
 
->For more detailed, see the excellent technical analysis published by Cynet:
+>For a more detailed analysis, see the excellent technical analysis published by Cynet:
 >
 > **[Cynet CyOps Lighthouse – Vidar Stealer](https://www.cynet.com/blog/cyops-lighthouse-vidar-stealer/)**
 
@@ -410,35 +411,50 @@ The following public sandbox reports were used during the analysis:
 (Registry) *\Software\Microsoft\Windows\CurrentVersion\Explorer
 (Key) TS_aa6f515d
 ```
+- [TA0005][T1480.002] Execution Guardrails: Mutual Exclusion
+
+  ```
+  (Mutex) Gernsoalse
+  ```
 
 ## TTP
 [TA0002][T1204.004] User Execution: Malicious Copy and Paste<br>
 [TA0002][T1059.001] Powershell<br>
 [TA0002][T1204] User Execution<br>
 [TA0005][T1027] Obfuscated Files or Information<br>
-[TA0005][T1055] Process Injection<br>
-[TA0005][T1480.002] Execution Guardrails: Mutual Exclusion<br> 
+[TA0005][T1140] Deobfuscate/Decode Files or Information<br>
+[TA0005][T1480.002] Execution Guardrails: Mutual Exclusion<br>
+[TA0005][T1497] Virtualization/Sandbox Evasion<br>
+[TA0005][T1497.001] Virtualization/Sandbox Evasion: System Checks<br>
+[TA0005][T1497.003] Virtualization/Sandbox Evasion: Time Based Evasion<br>
 [TA0005][T1620] Reflective Code Loading<br>
+[TA0005][T1622] Debugger Evasion<br>
 [TA0006][T1555] Credentials from Password Stores<br>
+[TA0006][T1555.003] Credentials from Password Stores: Credentials from Web Browsers<br>
 [TA0006][T1539] Steal Web Session Cookie<br>
+[TA0006][T1552.001] Unsecured Credentials: Credentials In Files<br>
+[TA0007][T1012] Query Registry<br>
 [TA0007][T1033] System Owner/User Discovery<br>
 [TA0007][T1057] Process Discovery<br>
 [TA0007][T1082] System Information Discovery<br>
 [TA0007][T1217] Browser Information Discovery<br>
-[TA0009][T1074] Data Staged: Local Data Staging<br>
+[TA0007][T1518.001] Software Discovery: Security Software Discovery<br>
+[TA0009][T1074.001] Data Staged: Local Data Staging<br>
 [TA0009][T1005] Data from Local System<br>
+[TA0009][T1113] Screen Capture<br>
 [TA0010][T1041] Exfiltration Over C2 Channel<br>
-[TA0011][T1071] Application Layer Protocol<br>
+[TA0011][T1071.001] Application Layer Protocol: Web Protocols<br>
+[TA0011][T1105] Ingress Tool Transfer<br>
+[TA0011][T1102.001] Web Service: Dead Drop Resolver<br>
 [TA0040][T1657] Financial Theft<br>
-
 
 ## Indicators of Compromise (IOCs)
 ### SHA256 Hashes
 ac1a4d8a2c2bf91b75c4c173424b4b142ef29aa7356ee9e05f043e4faeab94dd - setup-1.5.exe
-23E0142B4D892D05672084FD9A21DD9678EEEFDFB784AA95246792D5D8EAAF05 - Xeno.exe
-4992CB5F29594AE1CEA78E028A2E6A51D571A610CEEB4442B605953B916DD1C4 - 0c086e9dec2646afaae25a4d6d279141.exe
+23e0142b4d892d05672084fd9a21dd9678eeefdfb784aa95246792d5d8eaaf05 - Xeno.exe
+4992cb5f29594ae1cea78e028a2e6a51d571a610ceeb4442b605953b916dd1c4 - 0c086e9dec2646afaae25a4d6d279141.exe
 96088102f4063e528e214d3b9021bf7210a5bac500693d762023b12dbca5376b - FPS BOOST.exe
-12955F7DAEE85630142452182DAED5BE40AA628CC1B75CC81BD19E452660770F - Clickfix.exe
+12955f7daee85630142452182daed5be40aa628cc1b75cc81bd19e452660770f - Clickfix.exe
 96a6875c5ef401924adc9370e83d058e1bb23a4299582802ea30089df5dc7fb6 - Loader.exe
 
 ### Domains
@@ -447,6 +463,6 @@ ac1a4d8a2c2bf91b75c4c173424b4b142ef29aa7356ee9e05f043e4faeab94dd - setup-1.5.exe
 91[.]98.111.49<br>
 telegram[.]me/w09ksp<br>
 bdm.omni-signage[.]com<br>
-https://juj.psgiran.news/<br>
+https://juj.psgiran[.]news/<br>
 telegram[.]me/af97ri<br>
-159.69.77.223
+159[.]69.77.223
