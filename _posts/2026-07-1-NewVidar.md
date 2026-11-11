@@ -307,7 +307,7 @@ Next, the analyzed sample retrieves a final configuration file defining the brow
   }
 ]
 ```
-Once there's no connection to get configurations files, Vidar starts getting information about the processes that are running on the system and the applications installed on the victim's system
+Once there's no connection to get configurations files, Vidar starts getting information about the processes that are running on the system and the applications installed on the victim's system.
 <p align="center">
 <img src="/assets/images/newVidar/getsApplications.png">
 </p>
